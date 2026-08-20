@@ -1,0 +1,10 @@
+# Build artifacts
+*.o
+*.d
+*.elf
+*.bin
+*.hex
+*.map
+
+#Editor/IDE
+*.swp
