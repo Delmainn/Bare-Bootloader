@@ -3,8 +3,9 @@
         {
             "name": "Linux",
             "includePath": [
-                "${workspaceFolder}/**"
-            ],
+    "${workspaceFolder}/app/**",
+    "${workspaceFolder}/libopencm3/include/**"
+],
             "defines": [
                 "STM32F4",
                 "__ARM_ARCH_7EM__"
@@ -17,3 +18,8 @@
     ],
     "version": 4
 }
+
+/** "includePath": [
+                "${workspaceFolder}/**"
+            ]
+    **/
