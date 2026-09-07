@@ -1,12 +1,26 @@
 #include <libopencm3/stm32/rcc.h>  // Header file for clock configuration (rcc clock)
 #include <libopencm3/stm32/gpio.h> // Header file for gpio peripheral configuration (GPIOA)
+#include <libopencm3/cm3/scb.h>    // needed now specifically for SCB_VTOR
 
 #include "core/system.h"
 #include "core/timer.h"
 
+#define BOOTLOADER_SIZE (0x8000U)   // must match the bootloader's own BOOTLOADER_SIZE
+
+
 // Macros for making the code easier to read
 #define LED_PORT (GPIOA)  
 #define LED_PIN  (GPIO5)
+
+
+static void vector_setup(void) {
+    // The CPU is executing app code that lives starting at flash offset 0x8000,
+    // but by default the Cortex-M looks for its vector table (interrupt handlers,
+    // including things like SysTick) at address 0x00000000 — which right now
+    // points at the BOOTLOADER's vector table, not the app's.
+    // Setting VTOR tells the core "actually, my vector table starts at this offset instead.
+    SCB_VTOR = BOOTLOADER_SIZE;
+}
 
 static void gpio_setup(void) {
     rcc_periph_clock_enable(RCC_GPIOA); // Switches on the peripheral, as all of them are OFF unless turned on
@@ -17,6 +31,7 @@ static void gpio_setup(void) {
 
 // Program logically starts here
 int main(void) {
+    vector_setup();
     system_setup();
     gpio_setup();
     timer_setup();
