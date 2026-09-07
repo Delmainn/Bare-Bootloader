@@ -3,7 +3,7 @@
 #include <libopencm3/cm3/scb.h>    // needed now specifically for SCB_VTOR
 
 #include "core/system.h"
-#include "core/timer.h"
+#include "timer.h"
 
 #define BOOTLOADER_SIZE (0x8000U)   // must match the bootloader's own BOOTLOADER_SIZE
 
