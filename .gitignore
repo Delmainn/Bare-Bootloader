@@ -8,3 +8,4 @@
 
 #Editor/IDE
 *.swp
+node_modules/

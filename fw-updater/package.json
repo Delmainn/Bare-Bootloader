@@ -1,0 +1,10 @@
+{
+    "dependencies": {
+        "serialport": "^10.5.0"
+    },
+    "devDependencies": {
+        "@types/node": "^22.20.2",
+        "tsx": "^4.23.13",
+        "typescript": "^7.0.2"
+    }
+}
