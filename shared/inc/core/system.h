@@ -7,6 +7,7 @@
 #define SYSTICK_FREQ (1000)       //Systick frequency: 1000Hz or 1ms per tick
 
 void system_setup(void);
+void system_teardown(void);
 uint64_t system_get_ticks(void);
 void system_delay(uint64_t milliseconds);
 

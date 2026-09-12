@@ -31,8 +31,8 @@ ring_buffer_setup(&rb, data_buffer, RING_BUFFER_SIZE);
 
     rcc_periph_clock_enable(RCC_USART2);  //enable clock for usart2
 
-    usart_set_flow_control(USART2, USART_FLOWCONTROL_NONE);               //none
-    usart_set_mode(USART2, USART_MODE_TX_RX);                            // Transmit and recieve mode
+    usart_set_mode(USART2, USART_MODE_TX_RX);                             // Transmit and recieve mode
+    usart_set_flow_control(USART2, USART_FLOWCONTROL_NONE);              //none
     usart_set_databits(USART2, 8);                                      //set data bits to be transferred
     usart_set_baudrate(USART2, BAUD_RATE);                             //set baud rate 
     usart_set_parity(USART2, 0);                                      //set parity bit, none chosen
@@ -45,6 +45,13 @@ ring_buffer_setup(&rb, data_buffer, RING_BUFFER_SIZE);
 
     usart_enable(USART2);  //enable peripheral
 
+}
+
+void uart_teardown(void) {
+usart_disable_rx_interrupt(USART2);
+usart_disable(USART2);
+nvic_disable_irq(NVIC_USART2_IRQ);
+rcc_periph_clock_disable(RCC_USART2);  // disable clock for usart2
 }
 
 void uart_write(uint8_t* data, const uint32_t length){
