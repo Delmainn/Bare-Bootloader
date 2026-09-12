@@ -65,7 +65,7 @@ int main(void) {
 
         }
 
-       system_delay(1000);
+     //  system_delay(1000);
         //do useful work
 
 
