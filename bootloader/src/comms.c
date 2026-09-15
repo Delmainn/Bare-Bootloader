@@ -1,7 +1,7 @@
 #include <string.h>
 #include "comms.h"
 #include "core/uart.h"
-#include "core/crc8.h"
+#include "core/crc.h"
 
 // How many fully-received packets we can hold before comms_read() must
 // be called to make room. Separate from UART's own byte-level ring buffer
