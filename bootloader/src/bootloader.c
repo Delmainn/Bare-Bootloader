@@ -2,9 +2,12 @@
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/memorymap.h>       // gives us FLASH_BASE so we're not hardcoding 0x08000000 by hand
 #include <libopencm3/cm3/vector.h>       
+#include <libopencm3/cm3/scb.h>
 
+#include "core/firmware-info.h"
 #include "core/uart.h"
 #include "core/system.h"
+#include "core/crc.h"
 #include "core/simple-timer.h"
 #include "comms.h"
 #include "bl-flash.h"
@@ -22,11 +25,7 @@
 #define RX_PIN    (GPIO3) 
 #define TX_PIN    (GPIO2) 
 
-#define BOOTLOADER_SIZE        (0x8000U)
-#define MAIN_APP_START_ADDRESS (FLASH_BASE + BOOTLOADER_SIZE)  //address of main application: 0x08000000 + 0x8000 = 0x08008000
-#define MAX_FW_LENGTH          ((1024 * 512) - BOOTLOADER_SIZE)
 
-#define DEVICE_ID (0x42)
 
 #define SYNC_SEQ_0 (0xc4)
 #define SYNC_SEQ_1 (0x55)
@@ -69,6 +68,21 @@ static void gpio_teardown(void) {
 static void jump_to_main(void) {
     vector_table_t* main_vector_table = (vector_table_t*)MAIN_APP_START_ADDRESS;
     main_vector_table->reset();
+}
+
+static bool validate_firmware_image(void) {
+  firmware_info_t* firmware_info = (firmware_info_t*)FW_INFO_ADDRESS;
+
+  if (firmware_info->sentinel != FWINFO_SENTINEL) {
+    return false;
+  }
+
+  if (firmware_info->device_id != DEVICE_ID) {
+    return false;
+  }
+  const uint8_t* start_address = (const uint8_t*)FWINFO_VALIDATE_FROM;
+  const uint32_t computed_crc = crc32(start_address, FWINFO_VALIDATE_LENGTH(firmware_info->length));
+  return computed_crc == firmware_info->crc32;
 }
 
 static void bootloading_fail(void) {
@@ -277,7 +291,12 @@ int main(void) {
     gpio_teardown();
     system_teardown();
 
-    jump_to_main();
+    if(validate_firmware_image()) {
+      jump_to_main();
+    } else {
+      scb_reset_core();// reset the device
+    }
+    
     
     //Never return {would not make sense to end}
     return 0;
