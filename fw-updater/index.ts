@@ -270,8 +270,8 @@ const main = async () => {
   Logger.success(`Read firmware image (0x${fwLength} bytes)`);
 
   Logger.success(`Injecting into firmware information section`);
-  fwImage.writeUint32LE(fwLength, FWINFO_LENGTH_OFFSET);
-  fwImage.writeUint32LE(0x00000001, FWINFO_VERSION_OFFSET);
+  fwImage.writeUInt32LE(fwLength, FWINFO_LENGTH_OFFSET);
+  fwImage.writeUInt32LE(0x00000001, FWINFO_VERSION_OFFSET);
 
   const crcValue = crc32(fwImage.slice(FWINFO_VALIDATE_FROM), fwLength - (VECTOR_TABLE_SIZE + FIRMWARE_INFO_SIZE));  
   Logger.info(`Computed CRC value: 0x${crcValue.toString(16).padStart(8, '0')}`);
