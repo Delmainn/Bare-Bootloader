@@ -5,7 +5,7 @@ A bare-metal bootloader for the STM32F411RE (Nucleo-F411RE), written in C on top
 
 ## Goal
 
-Write a bootloader for the STM32F411RE that allows firmware updates over USB serial,
+Write a bootloader for the STM32F411RE that allows firmware updates over UART,
 with signed-firmware authentication.
 
 Built following the [LowByte Productions](https://www.youtube.com/@LowByteProductions) *"[Blinky to Bootloader](https://www.youtube.com/watch?v=uQQsDWLRDuI&list=PLP29wDx6QmW7HaCrRydOnxcy8QmW0SNdQ)"* series.
