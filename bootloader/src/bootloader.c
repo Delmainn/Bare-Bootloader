@@ -15,6 +15,10 @@
 #include "comms.h"
 #include "bl-flash.h"
 
+
+// smallest valid image: vector table + firmware_info + MAC tag
+#define FW_MIN_LENGTH ((SIGNATURE_ADDRESS + AES_BLOCK_SIZE) - MAIN_APP_START_ADDRESS)
+
 /**  The bootloader is allotted exactly the first 32KB of flash.
  This number has to agree in THREE other places or the whole scheme breaks:
    1) bootloader/linkerscript.ld    -> rom LENGTH = 32K
@@ -100,6 +104,13 @@ static bool validate_firmware_image(void) {
   if (firmware_info->device_id != DEVICE_ID) {
     return false;
   }
+
+
+  // length is untrusted until the MAC passes, so bound it before it drives any reads
+  if ((firmware_info->length < FW_MIN_LENGTH) || (firmware_info->length > MAX_FW_LENGTH)) {
+    return false;
+  }
+
 
   AES_Block_t round_keys[NUM_ROUND_KEYS_128];
   AES_KeySchedule128(secret_key, round_keys);
