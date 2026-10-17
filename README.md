@@ -43,7 +43,7 @@ Architecture based on the [Low Byte Productions](https://www.youtube.com/@LowByt
 - **Wrong CRCs:** `&packet` passed where `packet` was expected, so the CRC read stack garbage.
 - **Lost UART bytes:** a single-byte "data available" flag raced with the ISR; replaced it with a ring buffer, then fixed a mask off-by-one in it.
 - **Host stuck out of sync:** stale bytes in the serial backlog misaligned packet boundaries; fixed the parser to drop one byte on CRC failure and retry.
-- **"Optimized out" in GDB:** traced to `-Os`; switched the bootloader build to `-Og` for debugging.
+
 
 ## 🔩 Hardware
 
