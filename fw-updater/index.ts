@@ -146,7 +146,7 @@ const uart = new SerialPort({ path: serialPath, baudRate });
 let packets: Packet[] = [];
 
 // Bytes can arrive from before this run (old NACKS buffered in the ST-LINK)
-// Until sunc completes, only SYNC_OBSERVED belongs to this session
+// Until sync completes, only SYNC_OBSERVED belongs to this session
 let synced = false;
 
 let lastPacket: Buffer = Packet.ack;
