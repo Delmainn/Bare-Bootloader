@@ -4,6 +4,8 @@
 #include <libopencm3/cm3/vector.h>       
 #include <libopencm3/cm3/scb.h>
 
+#include <libopencm3/stm32/iwdg.h> // watchdog
+
 #include <string.h>
 
 #include "aes.h"
@@ -40,6 +42,7 @@
 #define SYNC_SEQ_3 (0x10)
 
 #define DEFAULT_TIMEOUT (5000)
+#define WATCHDOG_TIMEOUT_MS (4000) // Must exceed the longest gap between refreshes
 
 typedef enum bl_state_t {
     BL_State_Sync,
@@ -76,6 +79,14 @@ static void gpio_setup(void) {
 static void gpio_teardown(void) {
     gpio_mode_setup(UART_PORT, GPIO_MODE_ANALOG, GPIO_PUPD_NONE, TX_PIN | RX_PIN);
     rcc_periph_clock_disable(RCC_GPIOA); 
+}
+
+// The IWDG cannot be stopped once started, and it stays running after
+// jump_to_main(), so the application must keep refreshing it.
+static void watchdog_setup(void) {
+  //note: iwdg_set_period_ms() also starts the watchdog
+  iwdg_set_period_ms(WATCHDOG_TIMEOUT_MS);
+  iwdg_start();
 }
 
 static void jump_to_main(void) {
@@ -128,6 +139,7 @@ static bool validate_firmware_image(void) {
 
   uint32_t offset = 0;
   while(offset < firmware_info->length) {
+    iwdg_reset(); // a max-size image takes far longer than the watchdog timeout to MAC
     // Are we at the point where we need to skip the info and signature sections?
     if (offset == (FW_INFO_ADDRESS - MAIN_APP_START_ADDRESS)) {
       offset += AES_BLOCK_SIZE * 2;
@@ -212,6 +224,7 @@ static bool is_fw_length_packet(const comms_packet_t* packet){
 
 int main(void) {
     system_setup();
+    watchdog_setup(); //excited new code
      gpio_setup();
      uart_setup();
      comms_setup();
@@ -221,6 +234,7 @@ int main(void) {
 
 
     while (state != BL_State_Done) {
+      iwdg_reset(); // Runs on the Sync path which ends in 'continue'
         if (state == BL_State_Sync) {
             if (uart_data_available()) {
                sync_seq[0] = sync_seq [1];

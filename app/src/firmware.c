@@ -1,6 +1,7 @@
 #include <libopencm3/stm32/rcc.h>  // Header file for clock configuration (rcc clock)
 #include <libopencm3/stm32/gpio.h> // Header file for gpio peripheral configuration (GPIOA)
 #include <libopencm3/cm3/scb.h>    // needed now specifically for SCB_VTOR
+#include <libopencm3/stm32/iwdg.h> // watchdog header file
 
 #include "core/system.h"
 #include "core/uart.h"
@@ -48,6 +49,9 @@ int main(void) {
     timer_pwm_set_duty_cycle(duty_cycle);
     
     while (1) {
+        // The bootloader leaves the IWDG running. Refresh from the main loop,
+       // not an ISR, so a hung main loop still triggers a reset.
+        iwdg_reset(); 
     if (system_get_ticks()- start_time >= 10) {  // Every 10ms, step duty cycle by 1% (full 0 - 100% fade over ~1 second)
     duty_cycle += 1.0f;
     if (duty_cycle > 100.0f) {

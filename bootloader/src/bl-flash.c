@@ -1,4 +1,5 @@
 #include <libopencm3/stm32/flash.h>
+#include <libopencm3/stm32/iwdg.h>
 #include "bl-flash.h"
 
 #define MAIN_APP_SECTOR_START  (2)
@@ -8,6 +9,7 @@ void bl_flash_erase_main_application(void){
   flash_unlock();
   for (uint8_t sector = MAIN_APP_SECTOR_START; sector <= MAIN_APP_SECTOR_END; sector++) {
     flash_erase_sector(sector, FLASH_CR_PROGRAM_X32);
+    iwdg_reset(); // the main loop isn't running during erase; refresh between sectors
   }
   flash_lock();
 }
