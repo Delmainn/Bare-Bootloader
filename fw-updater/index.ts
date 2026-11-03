@@ -145,6 +145,10 @@ const uart = new SerialPort({ path: serialPath, baudRate });
 // Packet buffer
 let packets: Packet[] = [];
 
+// Bytes can arrive from before this run (old NACKS buffered in the ST-LINK)
+// Until sunc completes, only SYNC_OBSERVED belongs to this session
+let synced = false;
+
 let lastPacket: Buffer = Packet.ack;
 const writePacket = (packet: Buffer) => {
 uart.write(packet);
@@ -178,6 +182,11 @@ uart.on('data', data => {
 
     consumeFromBuffer(PACKET_LENGTH);
     //console.log(`Building a packet`);
+
+    if (!synced && !packet.isSingleBytePacket(BL_PACKET_SYNC_OBSERVED_DATA0)) {
+      continue;
+    }
+
 
     if (packet.isRetx()) {
       //console.log(`Retransmitting last packet`);
@@ -244,6 +253,7 @@ const syncWithBootloader = async (timeout = DEFAULT_TIMEOUT) => {
     if (packets.length > 0) {
       const packet = packets.splice(0, 1)[0]; 
       if (packet.isSingleBytePacket(BL_PACKET_SYNC_OBSERVED_DATA0)) {
+        synced = true;
         return;
       }
       Logger.error(`Wrong packet observed during sync sequence`);
@@ -322,5 +332,5 @@ Logger.info(`Wrote ${dataLength} bytes (${bytesWritten}/${fwLength})`);
 await waitForSingleBytePacket(BL_PACKET_UPDATE_SUCCESSFUL_DATA0);
 Logger.success("Firmware update complete!");
 }
-
-main().finally(() => uart.close());
+// wait for queued writes (the final ACK) to go out before closing the port
+main().finally(() => uart.drain(() => uart.close()));
