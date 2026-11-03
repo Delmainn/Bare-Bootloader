@@ -224,7 +224,7 @@ static bool is_fw_length_packet(const comms_packet_t* packet){
 
 int main(void) {
     system_setup();
-    watchdog_setup(); //excited new code
+    watchdog_setup();
      gpio_setup();
      uart_setup();
      comms_setup();
