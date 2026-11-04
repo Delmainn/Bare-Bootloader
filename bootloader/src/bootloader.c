@@ -325,7 +325,9 @@ int main(void) {
                 (temp_packet.data[4] << 24)
               );
 
-              if (is_fw_length_packet(&temp_packet) && (fw_length <= MAX_FW_LENGTH)) {
+              // reject impossible lengths here, before the erase destroys the current app
+              const bool length_ok = (fw_length > FW_MIN_LENGTH) && (fw_length <= MAX_FW_LENGTH);
+              if (is_fw_length_packet(&temp_packet) && length_ok) {
                 state = BL_State_EraseApplication;
               } else {
                 bootloading_fail();
@@ -349,6 +351,12 @@ int main(void) {
               comms_read(&temp_packet);
 
               const uint8_t packet_length = (temp_packet.length & 0x0f) + 1;
+
+              // never write past the length the host declared
+              if (packet_length > (fw_length - bytes_written)) {
+                bootloading_fail();
+                break;
+              }
            
               bl_flash_write(MAIN_APP_START_ADDRESS + bytes_written, temp_packet.data, packet_length);
               bytes_written += packet_length;
