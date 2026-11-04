@@ -18,7 +18,7 @@
 #include "bl-flash.h"
 
 
-// smallest valid image: vector table + firmware_info + MAC tag
+// vector table + firmware_info + MAC tag; a valid image must be LONGER than this
 #define FW_MIN_LENGTH ((SIGNATURE_ADDRESS + AES_BLOCK_SIZE) - MAIN_APP_START_ADDRESS)
 
 /**  The bootloader is allotted exactly the first 32KB of flash.
@@ -118,7 +118,7 @@ static bool validate_firmware_image(void) {
 
 
   // length is untrusted until the MAC passes, so bound it before it drives any reads
-  if ((firmware_info->length < FW_MIN_LENGTH) || (firmware_info->length > MAX_FW_LENGTH)) {
+  if ((firmware_info->length <= FW_MIN_LENGTH) || (firmware_info->length > MAX_FW_LENGTH)) {
     return false;
   }
 
