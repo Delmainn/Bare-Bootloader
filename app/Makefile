@@ -170,6 +170,11 @@ print-%:
 	@#printf "  CC      $(*).S\n"
 	$(Q)$(CC) $(TGT_CFLAGS) $(CFLAGS) -o $(*).o -c $(*).S
 
+# bootloader.S embeds bootloader.bin with .incbin, which make can't see on its own.
+# Without this, a rebuilt bootloader.bin is silently ignored by the app build.
+$(SRC_DIR)/bootloader.o: ../bootloader/bootloader.bin
+../bootloader/bootloader.bin: ;  # built by bootloader/Makefile, not here
+
 %.o: %.cxx
 	@#printf "  CXX     $(*).cxx\n"
 	$(Q)$(CXX) $(TGT_CXXFLAGS) $(CXXFLAGS) $(TGT_CPPFLAGS) $(CPPFLAGS) -o $(*).o -c $(*).cxx
