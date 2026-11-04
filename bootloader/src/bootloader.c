@@ -358,15 +358,23 @@ int main(void) {
                 break;
               }
            
-              bl_flash_write(MAIN_APP_START_ADDRESS + bytes_written, temp_packet.data, packet_length);
+              if (!bl_flash_write(MAIN_APP_START_ADDRESS + bytes_written, temp_packet.data, packet_length)) {
+                bootloading_fail();
+                break;
+              }
               bytes_written += packet_length;
               simple_timer_reset(&timer);
               
               if (bytes_written >= fw_length) {
+                // only report success for an image that will actually boot
+                if (validate_firmware_image()) {
                 comms_create_single_byte_packet(&temp_packet, BL_PACKET_UPDATE_SUCCESSFUL_DATA0);
                 comms_write(&temp_packet);
                 state = BL_State_Done;
               } else {
+                bootloading_fail();
+              }
+            }else {
                 comms_create_single_byte_packet(&temp_packet, BL_PACKET_READY_FOR_DATA_DATA0);
                 comms_write(&temp_packet);
               }
